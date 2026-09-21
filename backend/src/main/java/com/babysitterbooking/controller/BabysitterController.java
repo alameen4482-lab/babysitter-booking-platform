@@ -3,6 +3,7 @@ package com.babysitterbooking.controller;
 import com.babysitterbooking.model.entity.Babysitter;
 import com.babysitterbooking.service.BabysitterService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,10 +20,13 @@ public class BabysitterController {
 
     @PostMapping
     public ResponseEntity<Babysitter> createBabysitter(
-            @RequestBody Babysitter babysitter) {
+            @RequestBody Babysitter babysitter,
+            Authentication authentication) {
+
+        String email = authentication.getName();
 
         return ResponseEntity.ok(
-                babysitterService.createBabysitter(babysitter));
+                babysitterService.createBabysitter(babysitter, email));
     }
 
     @GetMapping

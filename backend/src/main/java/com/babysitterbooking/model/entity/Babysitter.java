@@ -29,6 +29,7 @@ public class Babysitter extends BaseEntity {
     @Column(nullable = false)
     private Double hourlyRate;
 
+    @Builder.Default
     @Column(nullable = false)
-    private Boolean available;
+    private Boolean available = true;
 }
