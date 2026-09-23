@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -24,6 +25,10 @@ public class AuthService {
     private final JwtUtil jwtUtil;
 
     public AuthResponse register(RegisterRequest request) {
+
+        if (request.getRole() == User.Role.ADMIN) {
+            throw new ConflictException("ADMIN accounts cannot be created through public registration");
+        }
 
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ConflictException("Email already registered");
