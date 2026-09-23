@@ -1,8 +1,11 @@
 package com.babysitterbooking.service;
 
 import com.babysitterbooking.config.JwtUtil;
+import com.babysitterbooking.dto.AuthResponse;
 import com.babysitterbooking.dto.LoginRequest;
 import com.babysitterbooking.dto.RegisterRequest;
+import com.babysitterbooking.exception.ConflictException;
+import com.babysitterbooking.exception.ResourceNotFoundException;
 import com.babysitterbooking.model.entity.User;
 import com.babysitterbooking.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +23,10 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
 
-    public String register(RegisterRequest request) {
+    public AuthResponse register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered");
+            throw new ConflictException("Email already registered");
         }
 
         User user = User.builder()
@@ -35,16 +38,23 @@ public class AuthService {
 
         userRepository.save(user);
 
-        return jwtUtil.generateToken(
+        String token = jwtUtil.generateToken(
                 org.springframework.security.core.userdetails.User
                         .withUsername(user.getEmail())
                         .password(user.getPassword())
                         .roles(user.getRole().name())
                         .build()
         );
+
+        return AuthResponse.builder()
+                .token(token)
+                .email(user.getEmail())
+                .name(user.getName())
+                .role(user.getRole().name())
+                .build();
     }
 
-    public String login(LoginRequest request) {
+    public AuthResponse login(LoginRequest request) {
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -54,14 +64,21 @@ public class AuthService {
         );
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        return jwtUtil.generateToken(
+        String token = jwtUtil.generateToken(
                 org.springframework.security.core.userdetails.User
                         .withUsername(user.getEmail())
                         .password(user.getPassword())
                         .roles(user.getRole().name())
                         .build()
         );
+
+        return AuthResponse.builder()
+                .token(token)
+                .email(user.getEmail())
+                .name(user.getName())
+                .role(user.getRole().name())
+                .build();
     }
 }

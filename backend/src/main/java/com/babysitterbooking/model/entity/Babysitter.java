@@ -29,4 +29,14 @@ public class Babysitter extends BaseEntity {
     @Builder.Default
     @Column(nullable = false)
     private Boolean available = true;
+
+    private String bio;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean isVerified = false;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Double averageRating = 0.0;
 }

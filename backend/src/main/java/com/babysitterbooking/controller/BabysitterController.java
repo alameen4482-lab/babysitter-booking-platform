@@ -1,50 +1,75 @@
 package com.babysitterbooking.controller;
 
-import com.babysitterbooking.model.entity.Babysitter;
+import com.babysitterbooking.dto.ApiResponse;
+import com.babysitterbooking.dto.BabysitterResponse;
+import com.babysitterbooking.dto.CreateBabysitterRequest;
 import com.babysitterbooking.service.BabysitterService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/babysitters")
+@RequiredArgsConstructor
+@Tag(name = "Babysitters", description = "Babysitter profile management")
 public class BabysitterController {
 
     private final BabysitterService babysitterService;
 
-    public BabysitterController(BabysitterService babysitterService) {
-        this.babysitterService = babysitterService;
-    }
-
+    @Operation(summary = "Create a babysitter profile (BABYSITTER role only)")
     @PostMapping
-    public ResponseEntity<Babysitter> createBabysitter(
-            @RequestBody Babysitter babysitter,
+    @PreAuthorize("hasRole('BABYSITTER')")
+    public ResponseEntity<ApiResponse<BabysitterResponse>> createBabysitter(
+            @Valid @RequestBody CreateBabysitterRequest request,
             Authentication authentication) {
 
         String email = authentication.getName();
-
-        return ResponseEntity.ok(
-                babysitterService.createBabysitter(babysitter, email));
+        BabysitterResponse response = babysitterService.createBabysitter(request, email);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Babysitter profile created successfully", response));
     }
 
+    @Operation(summary = "Get all babysitter profiles")
     @GetMapping
-    public ResponseEntity<List<Babysitter>> getAllBabysitters() {
+    public ResponseEntity<ApiResponse<List<BabysitterResponse>>> getAllBabysitters() {
         return ResponseEntity.ok(
-                babysitterService.getAllBabysitters());
+                ApiResponse.success("Babysitters retrieved successfully",
+                        babysitterService.getAllBabysitters()));
     }
 
+    @Operation(summary = "Get a babysitter by ID")
     @GetMapping("/{id}")
-    public ResponseEntity<Babysitter> getBabysitterById(
+    public ResponseEntity<ApiResponse<BabysitterResponse>> getBabysitterById(
             @PathVariable Long id) {
 
-        Babysitter babysitter = babysitterService.getBabysitterById(id);
+        return ResponseEntity.ok(
+                ApiResponse.success("Babysitter retrieved successfully",
+                        babysitterService.getBabysitterById(id)));
+    }
 
-        if (babysitter == null) {
-            return ResponseEntity.notFound().build();
-        }
+    @Operation(summary = "Search babysitters with optional time window and minimum rating filters")
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<BabysitterResponse>>> searchBabysitters(
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime,
+            @RequestParam(required = false) Double minimumRating) {
 
-        return ResponseEntity.ok(babysitter);
+        List<BabysitterResponse> results =
+                babysitterService.searchBabysitters(startTime, endTime, minimumRating);
+        return ResponseEntity.ok(
+                ApiResponse.success("Search results retrieved successfully", results));
     }
 }
