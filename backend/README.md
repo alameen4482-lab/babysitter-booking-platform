@@ -22,13 +22,13 @@
 CREATE DATABASE babysitter_booking_db;
 ```
 
-### 2. Configure Environment Variables (or edit application.properties)
+### 2. Configure Environment Variables
 
 ```bash
 DB_URL=jdbc:mysql://localhost:3306/babysitter_booking_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
 DB_USERNAME=root
-DB_PASSWORD=your_password
-JWT_SECRET=your-base64-encoded-256-bit-secret
+DB_PASSWORD=<your-local-mysql-password>
+JWT_SECRET=<long-random-secret-at-least-32-bytes>
 ```
 
 ### 3. Run the Application
