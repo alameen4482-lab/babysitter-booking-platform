@@ -1,2 +1,14 @@
 backend/target/
 *.class
+
+# Frontend dependencies and build files
+frontend/node_modules/
+frontend/dist/
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
